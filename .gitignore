@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+#Miscelaneous files
+.DS_Store
+.ipynb_checkpoints
