@@ -237,61 +237,18 @@ st.subheader('An example of various extractive summary methods that can be done 
 form = st.form(key = "text_form")
 article = form.text_area(label="Enter the text of your article to summarize:")
 submit = form.form_submit_button(label="Generate Summaries From Text")
-word_cloud = form.checkbox(label = 'Visualize 20 Most Frequent Words')
+word_cloud = form.checkbox(label = 'Visualize Most Frequent Words')
 
 link_form = st.form(key = "link_form")
 link_article = link_form.text_input(label = "Enter the link to the medium article you want to summarize:")
 link_submit = link_form.form_submit_button(label="Generate Summaries From Article")
-word_cloud = link_form.checkbox(label = 'Visualize 20 Most Frequent Words')
+word_cloud_art = link_form.checkbox(label = 'Visualize Most Frequent Words')
 
 if submit:
-    #Make prediction from the input text
-    cosine = generate_summary(article)
-    jaccard = generate_summary_jaccard(article)
-    #genism = generate_summary_genism(article)
-    spacy_sum = generate_summary_spacy(article)
-    lsa = generate_summary_lsa(article)
-    lexrank = generate_summary_lexrank(article)
-
- 
-    #Display different summaries
-    st.header("Results")
-    st.write('**Cosine summary:** ')
-    st.write(cosine)
-    st.write('**Jaccard summary:** ')
-    st.write(jaccard)
-    st.write('**SpaCy summary:** ')
-    st.write(spacy_sum)
-    st.write('**LSA summary:** ')
-    st.write(lsa)
-    st.write('**LexRank summary:** ')
-    st.write(lexrank)
-
-    if word_cloud:
-        #Instantiates a frequency dictionary
-        fdist = FreqDist()
-        #Counts frequencies of words in example text
-        punct = list(string.punctuation)
-        punct.append("’")
-        punct.append("‘")
-        punct.append("-")
-        punct.append("“")
-        punct.append("”")
-        for word in word_tokenize(article):
-            if (word in punct) or (word in sw):
-                continue
-            else:
-                fdist[word.lower()] += 1
-        #Look at distribution of frequencies of top 20 words
-        fdist.plot(20, title = 'Frequency of Top 20 Words in Article')
-        st.pyplot(plt)
-
-
-if link_submit:
-    if not bool(re.search(r'medium.com', link_article)):
-        st.warning("Please make sure the link is to a Medium article")
+    n_sent = len(sent_tokenize(article))
+    if n_sent < 3:
+        st.warning("Please make sure the article is at least three sentences long.")
     else:
-        article = scrape_article(link_article)
         #Make prediction from the input text
         cosine = generate_summary(article)
         jaccard = generate_summary_jaccard(article)
@@ -329,7 +286,66 @@ if link_submit:
                     continue
                 else:
                     fdist[word.lower()] += 1
-            #Look at distribution of frequencies of top 20 words
-            fdist.plot(20, title = 'Frequency of Top 20 Words in Article')
+            if len(fdist.keys()) < 20:
+                n = len(fdist.keys())
+            else:
+                n = 20
+            #Look at distribution of frequencies of top n words
+            fdist.plot(n, title = 'Frequency of Top ' + str(n) + ' Words in Article')
             st.pyplot(plt)
+
+
+if link_submit:
+    if not bool(re.search(r'medium.com', link_article)):
+        st.warning("Please make sure the link contains medium.com")
+    else:
+        article = scrape_article(link_article)
+        n_sent = len(sent_tokenize(article))
+        if n_sent < 3:
+            st.warning("Please make sure the article is at least three sentences long.")
+        else:
+            #Make prediction from the input text
+            cosine = generate_summary(article)
+            jaccard = generate_summary_jaccard(article)
+            #genism = generate_summary_genism(article)
+            spacy_sum = generate_summary_spacy(article)
+            lsa = generate_summary_lsa(article)
+            lexrank = generate_summary_lexrank(article)
+
+        
+            #Display different summaries
+            st.header("Results")
+            st.write('**Cosine summary:** ')
+            st.write(cosine)
+            st.write('**Jaccard summary:** ')
+            st.write(jaccard)
+            st.write('**SpaCy summary:** ')
+            st.write(spacy_sum)
+            st.write('**LSA summary:** ')
+            st.write(lsa)
+            st.write('**LexRank summary:** ')
+            st.write(lexrank)
+
+            if word_cloud_art:
+                #Instantiates a frequency dictionary
+                fdist = FreqDist()
+                #Counts frequencies of words in example text
+                punct = list(string.punctuation)
+                punct.append("’")
+                punct.append("‘")
+                punct.append("-")
+                punct.append("“")
+                punct.append("”")
+                for word in word_tokenize(article):
+                    if (word in punct) or (word in sw):
+                        continue
+                    else:
+                        fdist[word.lower()] += 1
+                if len(fdist.keys()) < 20:
+                    n = len(fdist.keys())
+                else:
+                    n = 20
+                #Look at distribution of frequencies of top n words
+                fdist.plot(n, title = 'Frequency of Top ' + str(n) + ' Words in Article')
+                st.pyplot(plt)
     
