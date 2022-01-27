@@ -56,7 +56,11 @@ def generate_summary_jaccard(article, top_n = 3):
     return summary
 @st.cache
 def generate_summary_spacy(article, n_sent = 3):
-    nlp = spacy.load('en_core_web_sm')
+    try:
+        nlp = spacy.load("en_core_web_md")
+    except: # If not present, we download
+        spacy.cli.download("en_core_web_md")
+        nlp = spacy.load("en_core_web_md")
     text = nlp(article)
     tokens = [token.text for token in text]
     word_frequencies = {}
